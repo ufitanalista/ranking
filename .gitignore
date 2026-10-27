@@ -1,0 +1,14 @@
+# Projeto PÚBLICO: só entra o que está liberado abaixo. O único dado é o estado-inicial.enc (criptografado).
+/*
+!/.gitignore
+!/LEIA-ME.md
+!/publicar.py
+!/rodar.sh
+!/estado-inicial.enc
+!/.github/
+!/ferramentas/
+!/ranking/
+!/whatsapp/
+node_modules/
+__pycache__/
+*.bak*

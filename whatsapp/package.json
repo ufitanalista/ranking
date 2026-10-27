@@ -1,0 +1,11 @@
+{
+  "name": "ufit-whatsapp",
+  "private": true,
+  "type": "module",
+  "description": "Envio do ranking de consultores para o grupo de vendas pelo WhatsApp (Baileys)",
+  "dependencies": {
+    "baileys": "7.0.0-rc14",
+    "pino": "10.4.0",
+    "qrcode": "1.5.4"
+  }
+}

@@ -1,0 +1,83 @@
+# Ranking de consultores no WhatsApp, sem depender do PC.
+# Quem dispara é o cron-job.org (POST em .../actions/workflows/ranking.yml/dispatches) às :00 e :30, das 8h às 22h.
+# O estado (histórico do dia, sessão do portal e do WhatsApp) passa de uma rodada para a outra
+# pelo cache do GitHub, sempre criptografado com CHAVE_ESTADO. Na 1ª vez sai de estado-inicial.enc.
+name: Ranking
+on:
+  workflow_dispatch:
+    inputs:
+      forcar:
+        description: Rodar fora do horário (teste)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ranking
+  cancel-in-progress: false
+
+jobs:
+  rodar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TZ: America/Sao_Paulo
+      CHAVE_ESTADO: ${{ secrets.CHAVE_ESTADO }}
+      GRUPO_RANKING: ${{ secrets.GRUPO_RANKING }}
+      GRUPO_AVISOS: ${{ secrets.GRUPO_AVISOS }}
+      FORCAR: ${{ inputs.forcar }}
+      ESTADO: /tmp/estado
+      UFIT_RANKING_DADOS: /tmp/estado/ranking
+      UFIT_PORTAL_SESSAO: /tmp/estado/portal-sessao.txt
+      WA_SESSAO: /tmp/estado/whatsapp
+      UFIT_PORTAL_CRED: /tmp/cred/portal.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: whatsapp/package-lock.json
+
+      - name: Instalar o WhatsApp (Baileys)
+        working-directory: whatsapp
+        run: npm ci --omit=dev --no-audit --no-fund
+
+      - name: Buscar o estado da última rodada
+        uses: actions/cache/restore@v4
+        with:
+          path: estado.enc
+          key: estado-${{ github.run_id }}
+          restore-keys: estado-
+
+      - name: Abrir estado e credenciais
+        id: abrir
+        env:
+          PORTAL_CRED: ${{ secrets.PORTAL_CRED }}
+        run: |
+          if [ -f estado.enc ]; then echo "estado: última rodada"; else cp estado-inicial.enc estado.enc; echo "estado: inicial"; fi
+          node ferramentas/cripto.js decifrar CHAVE_ESTADO estado.enc /tmp/estado.tgz
+          mkdir -p "$ESTADO" /tmp/cred
+          tar xzf /tmp/estado.tgz -C "$ESTADO"
+          printf '%s' "$PORTAL_CRED" > "$UFIT_PORTAL_CRED"
+          ls "$UFIT_RANKING_DADOS" 2>/dev/null | tail -5 || true
+
+      - name: Rodar o ranking
+        run: bash rodar.sh
+
+      - name: Guardar o estado (criptografado)
+        if: always() && steps.abrir.outcome == 'success'
+        run: |
+          rm -rf /tmp/cred
+          tar czf /tmp/estado.tgz -C "$ESTADO" .
+          node ferramentas/cripto.js cifrar CHAVE_ESTADO /tmp/estado.tgz estado.enc
+          ls -la estado.enc
+
+      - uses: actions/cache/save@v4
+        if: always() && steps.abrir.outcome == 'success'
+        with:
+          path: estado.enc
+          key: estado-${{ github.run_id }}-${{ github.run_attempt }}
