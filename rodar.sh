@@ -49,6 +49,9 @@ rodar() {  # rodar [argumentos do ranking.py]; devolve o código de saída
   return $codigo
 }
 
+# Período de teste: até 28/10/2026 o ranking vai para o grupo de avisos (LEMBRETES); depois, para o oficial
+if [[ "$(date +%F)" < "2026-10-29" ]]; then GRUPO_RANKING="$GRUPO_AVISOS"; echo "Período de teste: post vai para o grupo de avisos."; fi
+
 falhou=0
 
 # 1) Fechamento de ontem, uma vez só
