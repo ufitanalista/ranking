@@ -24,6 +24,8 @@ segredos = {
     'GRUPO_AVISOS': nuvem['grupo_avisos'],
     'GRUPO_VENDAS': nuvem['grupo_vendas'],
 }
+if nuvem.get('teams_vendas'):  # link do Workflows do Teams: com ele, as vendas vão só para o Teams
+    segredos['TEAMS_VENDAS'] = nuvem['teams_vendas']
 for nome, valor in segredos.items():
     subprocess.run([GH, 'secret', 'set', nome, '-R', PROJETO], input=valor.encode('utf-8'), check=True)
 subprocess.run([GH, 'secret', 'list', '-R', PROJETO], check=True)

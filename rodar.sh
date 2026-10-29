@@ -81,13 +81,24 @@ else
   falhou=1
 fi
 
-# 3) Vendas pelo EVO para GRUPO_VENDAS (COMERCIAL UFIT; sem ele, o de avisos): o mês na 1ª rodada do dia, o dia nas horas cheias
+# 3) Vendas pelo EVO: o mês na 1ª rodada do dia, o dia nas horas cheias.
+# Com TEAMS_VENDAS, vai só para o canal do Teams (COMERCIAL UNIDADES UFIT); sem ele, para GRUPO_VENDAS no WhatsApp.
 VENDAS="$UFIT_VENDAS_DADOS"
 mkdir -p "$VENDAS"
+enviar_vendas() {  # enviar_vendas <arquivo>
+  if [ -z "${TEAMS_VENDAS:-}" ]; then enviar "$1" "${GRUPO_VENDAS:-$GRUPO_AVISOS}"; return; fi
+  for tentativa in 1 2 3; do
+    python3 ranking/teams.py "$1" && return 0
+    echo "Teams (tentativa $tentativa) falhou"; sleep 20
+  done
+  echo "::error::Teams não recebeu $1"
+  avisar "o Teams não recebeu $(basename "$1")."
+  return 1
+}
 vendas() {  # vendas hora|mes <começo do nome do arquivo que ele gera>
   local saida
   if saida=$(python3 ranking/vendas.py "$1" 2>&1); then
-    enviar "$(ls -t "$VENDAS"/"$2"*.txt | head -1)" "${GRUPO_VENDAS:-$GRUPO_AVISOS}" || falhou=1
+    enviar_vendas "$(ls -t "$VENDAS"/"$2"*.txt | head -1)" || falhou=1
   else
     echo "$saida" | tail -5
     echo "::error::vendas.py $1 falhou"

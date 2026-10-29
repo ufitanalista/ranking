@@ -16,6 +16,7 @@ COPIAS = {
     DATA / 'etl' / 'portal.py': AQUI / 'ranking' / 'etl' / 'portal.py',
     DATA / 'etl' / 'ranking_post.py': AQUI / 'ranking' / 'etl' / 'ranking_post.py',
     DATA / 'vendas.py': AQUI / 'ranking' / 'vendas.py',
+    DATA / 'teams.py': AQUI / 'ranking' / 'teams.py',
     DATA / 'etl' / 'evo.py': AQUI / 'ranking' / 'etl' / 'evo.py',
     DATA / 'etl' / 'credenciais.py': AQUI / 'ranking' / 'etl' / 'credenciais.py',
     WHATS / 'whatsapp.mjs': AQUI / 'whatsapp' / 'whatsapp.mjs',
