@@ -280,7 +280,9 @@ def gerar(dados, estado, agora, fechamento=False):
     for cid, antes in estado.get("planos", {}).items():
         agora_p = planos_todos.get(cid, 0)
         if agora_p < antes:
-            obs.append(f"{nomes_todos.get(cid, cid)} caiu de {antes} para {agora_p} planos desde a última atualização "
+            # quem volta a 0 some da lista do portal: o nome vem do que ficou guardado da rodada anterior
+            nome = nomes_todos.get(cid) or estado.get("nomes", {}).get(cid) or "Um consultor (nome não encontrado)"
+            obs.append(f"{nome} caiu de {antes} para {agora_p} planos desde a última atualização "
                        "(pode ser cancelamento ou estorno).")
     obs += [f"Unidade fora da lista de regiões: {c['unidade']} ({c['nome']})." for c in top if not c["regiao"]]
 
@@ -289,7 +291,9 @@ def gerar(dados, estado, agora, fechamento=False):
         "atualizacoes": atualizacoes + [{"hora": None if fechamento else f"{agora:%H:%M}", "top": top,
                                          "maior_subida": maior_subida}],
         "ja_esteve": sorted(ja_esteve | {c["id"] for c in top}),
-        "planos": {**estado.get("planos", {}), **planos_todos},
+        # quem sumiu da lista fica com 0, senão o aviso de "plano a menos" se repete em toda rodada
+        "planos": {**{cid: 0 for cid in estado.get("planos", {})}, **planos_todos},
+        "nomes": {**estado.get("nomes", {}), **nomes_todos},
     }
     return post, obs, novo
 
