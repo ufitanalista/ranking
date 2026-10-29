@@ -21,7 +21,7 @@ concurrency:
 jobs:
   rodar:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       TZ: America/Sao_Paulo
       CHAVE_ESTADO: ${{ secrets.CHAVE_ESTADO }}
@@ -33,6 +33,8 @@ jobs:
       UFIT_PORTAL_SESSAO: /tmp/estado/portal-sessao.txt
       WA_SESSAO: /tmp/estado/whatsapp
       UFIT_PORTAL_CRED: /tmp/cred/portal.json
+      UFIT_VENDAS_DADOS: /tmp/estado/vendas
+      UFIT_EVO_CRED: /tmp/cred/evo.json
     steps:
       - uses: actions/checkout@v4
 
@@ -57,12 +59,14 @@ jobs:
         id: abrir
         env:
           PORTAL_CRED: ${{ secrets.PORTAL_CRED }}
+          EVO_CRED: ${{ secrets.EVO_CRED }}
         run: |
           if [ -f estado.enc ]; then echo "estado: última rodada"; else cp estado-inicial.enc estado.enc; echo "estado: inicial"; fi
           node ferramentas/cripto.js decifrar CHAVE_ESTADO estado.enc /tmp/estado.tgz
           mkdir -p "$ESTADO" /tmp/cred
           tar xzf /tmp/estado.tgz -C "$ESTADO"
           printf '%s' "$PORTAL_CRED" > "$UFIT_PORTAL_CRED"
+          printf '%s' "$EVO_CRED" > "$UFIT_EVO_CRED"
           ls "$UFIT_RANKING_DADOS" 2>/dev/null | tail -5 || true
 
       - name: Rodar o ranking

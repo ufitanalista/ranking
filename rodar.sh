@@ -81,6 +81,26 @@ else
   falhou=1
 fi
 
+# 3) Vendas pelo EVO, só para o grupo de avisos (LEMBRETES): o mês na 1ª rodada do dia, o dia nas horas cheias
+VENDAS="$UFIT_VENDAS_DADOS"
+mkdir -p "$VENDAS"
+vendas() {  # vendas hora|mes <começo do nome do arquivo que ele gera>
+  local saida
+  if saida=$(python3 ranking/vendas.py "$1" 2>&1); then
+    enviar "$(ls -t "$VENDAS"/"$2"*.txt | head -1)" "$GRUPO_AVISOS" || falhou=1
+  else
+    echo "$saida" | tail -5
+    echo "::error::vendas.py $1 falhou"
+    avisar "não consegui puxar as vendas do EVO ($1). Detalhe: $(echo "$saida" | tail -1)"
+    falhou=1
+  fi
+}
+[ -f "$VENDAS/vendas_mes_$hoje.txt" ] || vendas mes "vendas_mes_$hoje"
+hora=$(date +%H)
+if [ "$((10#$(date +%M)))" -lt 15 ] && ! ls "$VENDAS" | grep -q "^vendas_${hoje}_${hora}h"; then
+  vendas hora "vendas_${hoje}_"
+fi
+
 # Guarda só os últimos 3 dias (o estado de ontem é o que faz o fechamento)
 find "$DADOS" -type f -mtime +3 -delete
 exit $falhou
