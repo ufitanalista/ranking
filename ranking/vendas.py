@@ -73,11 +73,10 @@ def relatorio_hora(evo, agora, salvar):
               f"Vendas novas: *{brl(novas)}*"]
     if ultima:
         linhas[-1] += f" (+{brl(novas - ultima['novas'])} desde as {ultima['hora']})"
-    linhas.append(f"Com recorrente: {brl(total)}")
-    linhas += ["", "*Por unidade* (novas · com recorrente):"]
+    linhas += ["", "*Por unidade:*"]
     ordem = sorted(por_unidade.items(), key=lambda kv: (-kv[1][0], -kv[1][1]))
     for i, (b, (n, t)) in enumerate(ordem, 1):
-        linhas.append(f"{i}º {nome_unidade(b)}: {brl(n)} · {brl(t)}")
+        linhas.append(f"{i}º {nome_unidade(b)}: {brl(n)}")
 
     if salvar:
         arq_ultima.write_text(json.dumps({"hora": f"{agora:%Hh%M}", "novas": novas, "total": total}), encoding="utf-8")
@@ -88,15 +87,24 @@ def relatorio_mes(evo, hoje):
     ontem = hoje - timedelta(days=1)
     inicio = ontem.replace(day=1)  # no dia 1º, "ontem" é o último dia do mês anterior: sai o mês inteiro
     por_dia = somar(evo.vendas(f"{inicio}", f"{ontem}"), lambda v: (v.get("saleDate") or "")[:10])
+    dias = [inicio + timedelta(days=k) for k in range((ontem - inicio).days + 1)]
+    novas_dia = {d: por_dia.get(f"{d}", (0.0, 0.0))[0] for d in dias}
+    # Dia bom/ruim comparado com o mesmo dia da semana no mês (domingo é sempre fraco, não é "dia ruim")
+    media_semana = {w: sum(v for d, v in novas_dia.items() if d.weekday() == w) /
+                       max(1, sum(1 for d in dias if d.weekday() == w)) for w in range(7)}
+    melhores = set(sorted(dias, key=lambda d: -novas_dia[d])[:3])
     linhas = [f"📅 *Vendas de {MESES[inicio.month - 1]}* (até {ontem:%d/%m})", ""]
-    d = inicio
-    while d <= ontem:
-        n, t = por_dia.get(f"{d}", (0.0, 0.0))
-        linhas.append(f"{d:%d} - {brl(n)}")
-        d += timedelta(days=1)
+    for d in dias:
+        texto = f"{d:%d} {DIAS[d.weekday()][:3]} - {brl(novas_dia[d])}"
+        if d in melhores:
+            texto = f"*{texto}* 🔥"
+        elif novas_dia[d] < 0.7 * media_semana[d.weekday()]:
+            texto += " 🔻"
+        linhas.append(texto)
     novas = sum(s[0] for s in por_dia.values())
     total = sum(s[1] for s in por_dia.values())
-    linhas += ["", f"Total vendas novas: *{brl(novas)}*", f"Total com recorrente: {brl(total)}"]
+    linhas += ["", f"Total vendas novas: *{brl(novas)}*", f"Total com recorrente: {brl(total)}", "",
+               "🔥 3 melhores dias · 🔻 abaixo de 70% da média do mesmo dia da semana"]
     return "\n".join(linhas), f"vendas_mes_{hoje}.txt"
 
 
