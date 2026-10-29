@@ -22,6 +22,7 @@ segredos = {
     'CHAVE_ESTADO': nuvem['chave_estado'],
     'GRUPO_RANKING': nuvem['grupo_ranking'],
     'GRUPO_AVISOS': nuvem['grupo_avisos'],
+    'GRUPO_VENDAS': nuvem['grupo_vendas'],
 }
 for nome, valor in segredos.items():
     subprocess.run([GH, 'secret', 'set', nome, '-R', PROJETO], input=valor.encode('utf-8'), check=True)

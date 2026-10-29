@@ -27,6 +27,7 @@ jobs:
       CHAVE_ESTADO: ${{ secrets.CHAVE_ESTADO }}
       GRUPO_RANKING: ${{ secrets.GRUPO_RANKING }}
       GRUPO_AVISOS: ${{ secrets.GRUPO_AVISOS }}
+      GRUPO_VENDAS: ${{ secrets.GRUPO_VENDAS }}
       FORCAR: ${{ inputs.forcar }}
       ESTADO: /tmp/estado
       UFIT_RANKING_DADOS: /tmp/estado/ranking

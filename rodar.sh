@@ -81,13 +81,13 @@ else
   falhou=1
 fi
 
-# 3) Vendas pelo EVO, só para o grupo de avisos (LEMBRETES): o mês na 1ª rodada do dia, o dia nas horas cheias
+# 3) Vendas pelo EVO para GRUPO_VENDAS (COMERCIAL UFIT; sem ele, o de avisos): o mês na 1ª rodada do dia, o dia nas horas cheias
 VENDAS="$UFIT_VENDAS_DADOS"
 mkdir -p "$VENDAS"
 vendas() {  # vendas hora|mes <começo do nome do arquivo que ele gera>
   local saida
   if saida=$(python3 ranking/vendas.py "$1" 2>&1); then
-    enviar "$(ls -t "$VENDAS"/"$2"*.txt | head -1)" "$GRUPO_AVISOS" || falhou=1
+    enviar "$(ls -t "$VENDAS"/"$2"*.txt | head -1)" "${GRUPO_VENDAS:-$GRUPO_AVISOS}" || falhou=1
   else
     echo "$saida" | tail -5
     echo "::error::vendas.py $1 falhou"
