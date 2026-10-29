@@ -58,6 +58,9 @@ def nome_unidade(id_branch):
     return UNIDADES.get(id_branch, f"Unidade {id_branch}")
 
 
+NEGRITO, FOGO = 5_000, 10_000  # vendas novas da unidade no dia acima disso: negrito; acima de FOGO: negrito + 🔥
+
+
 def relatorio_hora(evo, agora, salvar):
     hoje = agora.date()
     por_unidade = somar(evo.vendas(f"{hoje}", f"{hoje}"), lambda v: v.get("idBranch"))
@@ -76,7 +79,8 @@ def relatorio_hora(evo, agora, salvar):
     linhas += ["", "*Por unidade:*"]
     ordem = sorted(por_unidade.items(), key=lambda kv: (-kv[1][0], -kv[1][1]))
     for i, (b, (n, t)) in enumerate(ordem, 1):
-        linhas.append(f"{i}º {nome_unidade(b)}: {brl(n)}")
+        texto = f"{i}º {nome_unidade(b)}: {brl(n)}"
+        linhas.append(f"*{texto}* 🔥" if n > FOGO else f"*{texto}*" if n > NEGRITO else texto)
 
     if salvar:
         arq_ultima.write_text(json.dumps({"hora": f"{agora:%Hh%M}", "novas": novas, "total": total}), encoding="utf-8")
