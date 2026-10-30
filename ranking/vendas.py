@@ -106,8 +106,7 @@ def relatorio_mes(evo, hoje):
             texto += " 🔻"
         linhas.append(texto)
     novas = sum(s[0] for s in por_dia.values())
-    total = sum(s[1] for s in por_dia.values())
-    linhas += ["", f"Total vendas novas: *{brl(novas)}*", f"Total com recorrente: {brl(total)}", "",
+    linhas += ["", f"Total vendas novas: *{brl(novas)}*", "",
                "🔥 3 melhores dias · 🔻 abaixo de 70% da média do mesmo dia da semana"]
     return "\n".join(linhas), f"vendas_mes_{hoje}.txt"
 
