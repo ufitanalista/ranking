@@ -19,7 +19,14 @@ LITORAL = {"Balneário Centro", "Alto São Bento", "Córrego Grande", "Jardim At
 NORTE = {"Salto", "Brusque", "Canoinhas", "Gaspar", "Indaial", "São João", "Jaraguá do Sul",
          "São Domingos", "Rio Negro", "Timbó", "CT Santa Terezinha",
          "São Bento do Sul", "Pomerode"}  # as duas entraram no Norte em 26/10/2026, igual ao post do CEO
-FORA_DO_RANKING = {"São Bento do Sul": "2026-10-29"}  # unidade: a partir de qual dia (AAAA-MM-DD) sai do ranking
+# unidade: (primeiro dia fora, dia em que volta) em AAAA-MM-DD; volta None = até alguém tirar a linha
+FORA_DO_RANKING = {"São Bento do Sul": ("2026-10-29", None),
+                   "Pomerode": ("2026-11-02", "2026-12-01")}  # pedido do usuário em 02/11: volta em dezembro
+
+
+def fora_do_ranking(unidade, dia):
+    saida, volta = FORA_DO_RANKING.get(unidade, (None, None))
+    return saida is not None and dia >= saida and (volta is None or dia < volta)
 UNIDADE_NOME = {"CT Pedra Branca": "Pedra Branca"}
 REGIAO = {"L": ("🌊", "Litoral (Yuna + Berg)"), "N": ("🏔️", "Norte (Rudinei + Antunes)")}
 # Nome curto fixo quando a regra (primeiro + segundo nome) não dá o nome que o grupo usa
@@ -85,7 +92,7 @@ def montar_top(dados):
     """Lista do dia na ordem do app (mais planos, depois maior valor), sem as unidades fora do ranking.
     No top só entra quem já tem plano: com menos de 15, o post mostra só esses."""
     dia = dados.get("date") or ""
-    lista = [c for c in dados["consultores"] if dia < FORA_DO_RANKING.get(unidade_curta(c["unitName"]), "9999")]
+    lista = [c for c in dados["consultores"] if not fora_do_ranking(unidade_curta(c["unitName"]), dia)]
     lista.sort(key=lambda c: (-c["totalPlans"], -c["totalValue"]))
     curtos = nomes_curtos([c["name"] for c in lista])
     generos = _generos()
