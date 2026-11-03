@@ -58,6 +58,7 @@ def nome_unidade(id_branch):
     return UNIDADES.get(id_branch, f"Unidade {id_branch}")
 
 
+SEM_MUDANCA = 10  # código de saída quando não há nada novo (mesmo código do ranking.py)
 NEGRITO, FOGO = 5_000, 10_000  # vendas novas da unidade no dia acima disso: negrito; acima de FOGO: negrito + 🔥
 
 
@@ -72,6 +73,11 @@ def relatorio_hora(evo, agora, salvar):
 
     arq_ultima = PASTA / f"ultima_{hoje}.json"
     ultima = json.loads(arq_ultima.read_text(encoding="utf-8")) if arq_ultima.exists() else None
+    # Só manda se o total de vendas novas mudou desde a última mensagem enviada (pedido do usuário, 03/11/2026:
+    # feriado de 02/11 saiu o dia todo com "+R$ 0,00"). Sem mudança, não grava nada: o "+R$ desde as Xh"
+    # da próxima conta a partir da última enviada. Antes da 1ª do dia a base é zero (sem venda, não manda).
+    if round(novas, 2) == round((ultima or {}).get("novas", 0), 2):
+        return None, None
     linhas = [f"💰 *Vendas do dia* ({DIAS[hoje.weekday()]}, {hoje:%d/%m} · {agora:%Hh%M})", "",
               f"Vendas novas: *{brl(novas)}*"]
     if ultima:
@@ -123,6 +129,9 @@ def main():
     evo = Evo()
     if a.tipo == "hora":
         texto, nome = relatorio_hora(evo, agora, not a.nao_salvar)
+        if texto is None:
+            print("Sem vendas novas desde a última mensagem: nada a enviar.")
+            sys.exit(SEM_MUDANCA)
     else:
         texto, nome = relatorio_mes(evo, agora.date())
     if not a.nao_salvar:

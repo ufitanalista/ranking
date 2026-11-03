@@ -96,8 +96,11 @@ enviar_vendas() {  # enviar_vendas <arquivo>
   return 1
 }
 vendas() {  # vendas hora|mes <começo do nome do arquivo que ele gera>
-  local saida
-  if saida=$(python3 ranking/vendas.py "$1" 2>&1); then
+  local saida codigo
+  saida=$(python3 ranking/vendas.py "$1" 2>&1); codigo=$?
+  if [ $codigo -eq $SEM_MUDANCA ]; then
+    echo "Vendas ($1): sem mudança desde a última mensagem, nada enviado."
+  elif [ $codigo -eq 0 ]; then
     enviar_vendas "$(ls -t "$VENDAS"/"$2"*.txt | head -1)" || falhou=1
   else
     echo "$saida" | tail -5
