@@ -28,7 +28,7 @@ def fora_do_ranking(unidade, dia):
     saida, volta = FORA_DO_RANKING.get(unidade, (None, None))
     return saida is not None and dia >= saida and (volta is None or dia < volta)
 UNIDADE_NOME = {"CT Pedra Branca": "Pedra Branca"}
-REGIAO = {"L": ("🌊", "Litoral (Yuna + Berg)"), "N": ("🏔️", "Norte (Rudinei + Antunes)")}
+REGIAO = {"L": ("🌊", "Litoral (Berg)"), "N": ("🏔️", "Norte (Antunes)")}  # só os gerentes, desde 03/11/2026
 # Nome curto fixo quando a regra (primeiro + segundo nome) não dá o nome que o grupo usa
 APELIDOS = {"JESSICA ADRIANE DOMASK": "Jessica Domask"}
 PARTICULAS = {"DA", "DE", "DO", "DAS", "DOS", "E"}
